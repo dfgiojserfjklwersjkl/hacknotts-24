@@ -5,21 +5,12 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI()
 
-def ask(context: str, question: str) -> str:
-    system_prompt = Config.get("system_prompt").format(context=context)
+def ask(messages: list, question: str) -> str:
 
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {
-            "role": "system",
-            "content": [
-                {
-                "type": "text",
-                "text": system_prompt
-                }
-            ]
-            },
+            *messages, 
             {
             "role": "user",
             "content": [
