@@ -1,25 +1,38 @@
+import os
+import pyaudio
 from interview import Interview
 from config import Config
+import stt
 if __name__ == "__main__":
     
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google-api-key.json'
 
     interview_context = Config.get("interview_context")
 
     interview = Interview(interview_context) 
 
-    question = "What programming languages are you most comfortable with, and which have you used for game development?"
-    answer = interview.ask(question)
-    print(f"{question}\n\nAns:\n {answer}\n======")
 
-    question = "Can you describe your experience with game engines like Unity or Minecraft’s own engine? What projects have you worked on using these tools?"
-    answer = interview.ask(question)
-    print(f"{question}\n\nAns:\n {answer}\n======")
+    pya = pyaudio.PyAudio()
+    info = pya.get_host_api_info_by_index(0)
+    numdevices = info.get('deviceCount') 
+    device_index = None
+    print ( "Available devices:\n")
+    for i in range(pya.get_device_count()):
+        devinfo = pya.get_device_info_by_index(i)
+        if devinfo['name'] == 'pulse':
+            device_index = i
+            break
+    lang = "en-US"
+    if device_index is None:
+        print("No matching device found")
+        exit()
+    
+    while True:
+        question = stt.main(lang, device_index)
 
-    question = "Can you describe your experience with game engines like Unity or Minecraft’s own engine? What projects have you worked on using these tools?"
-    answer = interview.ask(question)
-    print(f"{question}\n\nAns:\n {answer}\n======")
+        answer = interview.ask(question)
+        print(f"{question}\n\nAns:\n {answer}\n======")
 
-    question = "What game mechanics do you think are essential for engaging gameplay? Can you provide an example from a game you enjoy?"
-    answer = interview.ask(question)
-    print(f"{question}\n\nAns:\n {answer}\n======")
+        input("Press Enter to for the next question...")
+
     
