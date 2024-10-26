@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
     interview = Interview(interview_context) 
 
-    question = "What is your name?"
+    question = "What programming languages are you most comfortable with, and which have you used for game development?"
     answer = interview.ask(question)
     print(answer)
 
