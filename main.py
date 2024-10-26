@@ -15,7 +15,7 @@ if __name__ == "__main__":
     answer = interview.ask(question)
     print(f"{question}\n\nAns:\n {answer}\n======")
 
-    question = "Can you describe your experience with game engines like Unity or Minecraft’s own engine? What projects have you worked on using these tools?"
+    question = "What is your greatest weakness?"
     answer = interview.ask(question)
     print(f"{question}\n\nAns:\n {answer}\n======")
 
