@@ -3,6 +3,7 @@ import queue
 import re
 import sys
 import time
+import os
 
 from google.cloud import speech
 import pyaudio
@@ -69,6 +70,7 @@ class ResumableMicrophoneStream:
             # Run the audio stream asynchronously to fill the buffer object.
             # This is necessary so that the input device's buffer doesn't
             # overflow while the calling thread makes network requests, etc.
+            input_device_index=1,
             stream_callback=self._fill_buffer,
         )
 
@@ -263,14 +265,15 @@ def listen_print_loop(responses, stream) -> None:
             stream.last_transcript_was_final = False
 
 
-def main() -> None:
+def main(language: str) -> None:
     """start bidirectional streaming from microphone input to speech API"""
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=SAMPLE_RATE,
-        language_code="en-US",
+        language_code=language,
         max_alternatives=1,
+        profanity_filter=False,
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
@@ -318,11 +321,14 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    import os
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS']= 'google-api-key.json'
-    main()
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google-api-key.json'
 
-
-
-
-
+    pya = pyaudio.PyAudio()
+    print ( "Available devices:\n")
+    for i in range(0, pya.get_device_count()):
+        info = pya.get_device_info_by_index(i)
+        print ( str(info["index"]) +  ": \t %s \n \t %s \n" % (info["name"], pya.get_host_api_info_by_index(info["hostApi"])["name"]))
+        pass
+    input("Select device: ")
+    lang = "ja-JP"
+    main(lang)
