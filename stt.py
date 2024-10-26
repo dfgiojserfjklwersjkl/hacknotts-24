@@ -1,11 +1,14 @@
 
 import queue
 import re
+import keyboard
 import sys
 import time
 import os
 
 from google.cloud import speech
+from inputimeout import inputimeout
+from inputimeout.inputimeout import TimeoutOccurred
 import pyaudio
 
 from dotenv import load_dotenv
@@ -197,7 +200,7 @@ class ResumableMicrophoneStream:
             yield b"".join(data)
 
 
-def listen_print_loop(responses, stream) -> None:
+def listen_print_loop(responses, stream) -> str:
     """Iterates through server responses and prints them.
 
     The responses passed is a generator that will block until a response
@@ -216,6 +219,8 @@ def listen_print_loop(responses, stream) -> None:
         responses: The responses returned from the API.
         stream: The audio stream to be processed.
     """
+    sentences = [""]
+
     for response in responses:
         if get_current_time() - stream.start_time > STREAMING_LIMIT:
             stream.start_time = get_current_time()
@@ -254,6 +259,9 @@ def listen_print_loop(responses, stream) -> None:
         if result.is_final:
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
 
+            sentences[-1] = transcript
+            sentences.append("")
+
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
 
@@ -267,10 +275,26 @@ def listen_print_loop(responses, stream) -> None:
         else:
             sys.stdout.write(str(corrected_time) + ": " + transcript + "\r")
 
+            sentences[-1] = transcript
+
             stream.last_transcript_was_final = False
 
 
-def main(language: str, device_index: int) -> None:
+        try:
+            inputimeout(prompt='', timeout=0.1)
+            return ''.join(sentences)
+
+        except TimeoutOccurred as e:
+            pass
+
+
+    return ""
+
+        
+
+
+
+def main(language: str, device_index: int) -> str:
     """start bidirectional streaming from microphone input to speech API"""
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
@@ -292,6 +316,8 @@ def main(language: str, device_index: int) -> None:
     sys.stdout.write("End (ms)       Transcript Results/Status\n")
     sys.stdout.write("=====================================================\n")
 
+    transcript_output = ''
+
     with mic_manager as stream:
         while not stream.closed:
             sys.stdout.write(YELLOW)
@@ -309,8 +335,14 @@ def main(language: str, device_index: int) -> None:
 
             responses = client.streaming_recognize(streaming_config, requests)
 
+
             # Now, put the transcription responses to use.
-            listen_print_loop(responses, stream)
+            transcript_output = listen_print_loop(responses, stream)
+
+
+            return transcript_output
+
+
 
             if stream.result_end_time > 0:
                 stream.final_request_end_time = stream.is_final_end_time
@@ -324,6 +356,9 @@ def main(language: str, device_index: int) -> None:
                 sys.stdout.write("\n")
             stream.new_stream = True
 
+
+        else: 
+            return ""
 
 if __name__ == "__main__":
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google-api-key.json'
