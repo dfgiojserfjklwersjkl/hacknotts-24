@@ -11,3 +11,15 @@ if __name__ == "__main__":
     answer = interview.ask(question)
     print(answer)
 
+    question = "Can you describe your experience with game engines like Unity or Minecraft’s own engine? What projects have you worked on using these tools?"
+    answer = interview.ask(question)
+    print(answer)
+
+    question = "Can you describe your experience with game engines like Unity or Minecraft’s own engine? What projects have you worked on using these tools?"
+    answer = interview.ask(question)
+    print(answer)
+
+    question = "What game mechanics do you think are essential for engaging gameplay? Can you provide an example from a game you enjoy?"
+    answer = interview.ask(question)
+    print(answer)
+    
