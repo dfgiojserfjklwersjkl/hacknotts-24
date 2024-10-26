@@ -8,9 +8,14 @@ import os
 from google.cloud import speech
 import pyaudio
 
+from dotenv import load_dotenv
+
+from config import Config
+load_dotenv()
+
 # Audio recording parameters
 STREAMING_LIMIT = 240000  # 4 minutes
-SAMPLE_RATE = 16000
+SAMPLE_RATE = Config.get("input")["sample_rate"] or 44100
 CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 
 RED = "\033[0;31m"
@@ -35,7 +40,7 @@ class ResumableMicrophoneStream:
         self,
         rate: int,
         chunk_size: int,
-        device_index: str = "1",
+        device_index: int = 1,
     ) -> None:
         """Creates a resumable microphone stream.
 
@@ -48,7 +53,8 @@ class ResumableMicrophoneStream:
         """
         self._rate = rate
         self.chunk_size = chunk_size
-        self._num_channels = 1
+        self._num_channels = 2
+        # TODO: use mono audio
         self._buff = queue.Queue()
         self.closed = True
         self.start_time = get_current_time()
@@ -67,11 +73,12 @@ class ResumableMicrophoneStream:
             channels=self._num_channels,
             rate=self._rate,
             input=True,
+            output=False,
             frames_per_buffer=self.chunk_size,
             # Run the audio stream asynchronously to fill the buffer object.
             # This is necessary so that the input device's buffer doesn't
             # overflow while the calling thread makes network requests, etc.
-            input_device_index=int(device_index),
+            input_device_index=device_index,
             stream_callback=self._fill_buffer,
         )
 
@@ -266,7 +273,7 @@ def listen_print_loop(responses, stream) -> None:
             stream.last_transcript_was_final = False
 
 
-def main(language: str, device_index: str) -> None:
+def main(language: str, device_index: int) -> None:
     """start bidirectional streaming from microphone input to speech API"""
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
@@ -325,11 +332,18 @@ if __name__ == "__main__":
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'google-api-key.json'
 
     pya = pyaudio.PyAudio()
+    info = pya.get_host_api_info_by_index(0)
+    numdevices = info.get('deviceCount') 
+    device_index = None
     print ( "Available devices:\n")
-    for i in range(0, pya.get_device_count()):
-        info = pya.get_device_info_by_index(i)
-        print ( str(info["index"]) +  ": \t %s \n \t %s \n" % (info["name"], pya.get_host_api_info_by_index(info["hostApi"])["name"]))
-        pass
-    index = input("Select device: ")
-    lang = "ja-JP"
-    main(lang, index)
+    for i in range(pya.get_device_count()):
+        devinfo = pya.get_device_info_by_index(i)
+        print(i, devinfo['name'])
+        if devinfo['name'] == 'pulse':
+            device_index = i
+            break
+    lang = "en-US"
+    if device_index is None:
+        print("No matching device found")
+        exit()
+    main(lang, device_index)
