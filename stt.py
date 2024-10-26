@@ -35,6 +35,7 @@ class ResumableMicrophoneStream:
         self,
         rate: int,
         chunk_size: int,
+        device_index: str = "1",
     ) -> None:
         """Creates a resumable microphone stream.
 
@@ -70,7 +71,7 @@ class ResumableMicrophoneStream:
             # Run the audio stream asynchronously to fill the buffer object.
             # This is necessary so that the input device's buffer doesn't
             # overflow while the calling thread makes network requests, etc.
-            input_device_index=1,
+            input_device_index=int(device_index),
             stream_callback=self._fill_buffer,
         )
 
@@ -265,7 +266,7 @@ def listen_print_loop(responses, stream) -> None:
             stream.last_transcript_was_final = False
 
 
-def main(language: str) -> None:
+def main(language: str, device_index: str) -> None:
     """start bidirectional streaming from microphone input to speech API"""
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
@@ -280,7 +281,7 @@ def main(language: str) -> None:
         config=config, interim_results=True
     )
 
-    mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+    mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE, device_index)
     print(mic_manager.chunk_size)
     sys.stdout.write(YELLOW)
     sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
@@ -329,6 +330,6 @@ if __name__ == "__main__":
         info = pya.get_device_info_by_index(i)
         print ( str(info["index"]) +  ": \t %s \n \t %s \n" % (info["name"], pya.get_host_api_info_by_index(info["hostApi"])["name"]))
         pass
-    input("Select device: ")
+    index = input("Select device: ")
     lang = "ja-JP"
-    main(lang)
+    main(lang, index)
