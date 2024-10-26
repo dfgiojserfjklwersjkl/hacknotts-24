@@ -318,4 +318,11 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    import os
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS']= 'google-api-key.json'
     main()
+
+
+
+
+
