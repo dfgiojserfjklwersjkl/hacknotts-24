@@ -16,9 +16,9 @@ if __name__ == "__main__":
     info = pya.get_host_api_info_by_index(0)
     numdevices = info.get('deviceCount') 
     device_index = None
-    print ( "Available devices:\n")
     for i in range(pya.get_device_count()):
         devinfo = pya.get_device_info_by_index(i)
+        print(devinfo)
         if devinfo['name'] == 'pulse':
             device_index = i
             break
