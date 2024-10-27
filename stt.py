@@ -45,7 +45,6 @@ def listen_print_loop(responses, stream) -> str:
     sentences = [""]
 
     for response in responses:
-        
 
         if not response.results:
             continue
@@ -70,7 +69,7 @@ def listen_print_loop(responses, stream) -> str:
             (result_seconds * 1000) + (result_micros / 1000))
 
         corrected_time = stream.corrected_time()
-        
+
         # Display interim results, but with a carriage return at the end of the
         # line, so subsequent lines will overwrite them.
 
@@ -151,6 +150,8 @@ def main(language: str, device_index: int) -> str:
 
             # Now, put the transcription responses to use.
             transcript_output = listen_print_loop(responses, stream)
+
+            print(transcript_output)
 
             return transcript_output
 
