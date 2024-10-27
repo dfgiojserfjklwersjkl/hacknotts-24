@@ -74,7 +74,7 @@ def listen_print_loop(responses, stream) -> str:
         # line, so subsequent lines will overwrite them.
 
         if result.is_final:
-            sys.stdout.write(str(corrected_time) + ": " + transcript + "\n")
+            sys.stdout.write(transcript + "\n")
 
             sentences[-1] = transcript
             sentences.append("")
@@ -82,18 +82,9 @@ def listen_print_loop(responses, stream) -> str:
             stream.is_final_end_time = stream.result_end_time
             stream.last_transcript_was_final = True
 
-            # Exit recognition if any of the transcribed phrases could be
-            # one of our keywords.
-            if re.search(r"\b(exit|quit)\b", transcript, re.I):
-                sys.stdout.write(YELLOW)
-                sys.stdout.write("Exiting...\n")
-                stream.closed = True
-                break
         else:
-            sys.stdout.write(str(corrected_time) + ": " + transcript + "\r")
-
+            sys.stdout.write(transcript + "\r")
             sentences[-1] = transcript
-
             stream.last_transcript_was_final = False
 
         try:
@@ -154,18 +145,6 @@ def main(language: str, device_index: int) -> str:
             print(transcript_output)
 
             return transcript_output
-
-            if stream.result_end_time > 0:
-                stream.final_request_end_time = stream.is_final_end_time
-            stream.result_end_time = 0
-            stream.last_audio_input = []
-            stream.last_audio_input = stream.audio_input
-            stream.audio_input = []
-            stream.restart_counter = stream.restart_counter + 1
-
-            if not stream.last_transcript_was_final:
-                sys.stdout.write("\n")
-            stream.new_stream = True
 
         else:
             return ""
