@@ -73,8 +73,9 @@ def listen_print_loop(responses, stream) -> str:
         # Display interim results, but with a carriage return at the end of the
         # line, so subsequent lines will overwrite them.
 
+        print("\033l", end="")
+        print(transcript)
         if result.is_final:
-            sys.stdout.write(transcript + "\n")
 
             sentences[-1] = transcript
             sentences.append("")
@@ -83,7 +84,6 @@ def listen_print_loop(responses, stream) -> str:
             stream.last_transcript_was_final = True
 
         else:
-            sys.stdout.write(transcript + "\r")
             sentences[-1] = transcript
             stream.last_transcript_was_final = False
 
