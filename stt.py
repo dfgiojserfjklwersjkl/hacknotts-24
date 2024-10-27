@@ -3,6 +3,7 @@ import queue
 import re
 import sys
 import time
+from typing import Generator
 
 import pyaudio
 from dotenv import load_dotenv
@@ -40,11 +41,7 @@ recognition_config = cloud_speech_types.RecognitionConfig(
     model="long",
 )
 streaming_config = cloud_speech_types.StreamingRecognitionConfig(
-    config=recognition_config
-)
-config_request = cloud_speech_types.StreamingRecognizeRequest(
-    recognizer=f"projects/nineyrold/locations/global/recognizers/_",
-    streaming_config=streaming_config,
+    config=recognition_config,
 )
 
 def listen(
@@ -69,17 +66,30 @@ def listen(
             stream.audio_input = []
             audio_generator = stream.generator()
 
-            audio_requests = (
-                cloud_speech_types.StreamingRecognizeRequest(audio=audio) for audio in audio_generator
+            recognizer_config = cloud_speech_types.StreamingRecognizeRequest(
+                recognizer="projects/nineyrold/locations/global/recognizers/_",
+                streaming_config=streaming_config,
             )
 
-            def requests(config: cloud_speech_types.RecognitionConfig, audio: list):
+            audio_requests = (
+                cloud_speech_types.StreamingRecognizeRequest(
+                    recognizer=f"projects/nineyrold/locations/global/recognizers/_",
+                    audio=audio
+                )
+                for audio in audio_generator
+            )
+
+            def requests(config, audio: Generator):
                 yield config
-                yield from audio
+                c = 0
+                for packet in audio: 
+                    c += 1 
+                    print(f"Packet {c}")
+                    yield packet
 
             # Transcribes the audio into text
             responses_iterator = client.streaming_recognize(
-                requests=requests(config_request, audio_requests)
+                requests(recognizer_config, audio_requests)
             )
             responses = []
             for response in responses_iterator:
