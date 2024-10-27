@@ -18,7 +18,7 @@ if __name__ == "__main__":
     device_index = None
     for i in range(pya.get_device_count()):
         devinfo = pya.get_device_info_by_index(i)
-        print(devinfo)
+        # print(devinfo)
         if devinfo['name'] == 'pulse':
             device_index = i
             break
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         exit()
     
     while True:
-        question = stt.main(lang, device_index)
+        question = stt.listen(lang, device_index)
 
         answer = interview.ask(question)
         print(f"{question}\n\nAns:\n {answer}\n======")

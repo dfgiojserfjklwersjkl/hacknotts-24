@@ -8,6 +8,7 @@ import pyaudio
 from dotenv import load_dotenv
 from google.cloud.speech_v2 import SpeechClient
 from google.cloud.speech_v2.types import cloud_speech as cloud_speech_types
+
 from inputimeout import TimeoutOccurred, inputimeout
 
 from config import Config
@@ -27,10 +28,29 @@ YELLOW = "\033[0;33m"
 def get_current_time() -> int:
     return int(round(time.time() * 1000))
 
+recognition_config = cloud_speech_types.RecognitionConfig(
+    # auto_decoding_config=cloud_speech_types.AutoDetectDecodingConfig(),
+    # set to linear16
+    explicit_decoding_config=cloud_speech_types.ExplicitDecodingConfig(
+        encoding=cloud_speech_types.ExplicitDecodingConfig.AudioEncoding.LINEAR16,
+        sample_rate_hertz=SAMPLE_RATE,
+        audio_channel_count=2,
+    ),
+    language_codes=["en-US"],
+    model="long",
+)
+streaming_config = cloud_speech_types.StreamingRecognitionConfig(
+    config=recognition_config
+)
+config_request = cloud_speech_types.StreamingRecognizeRequest(
+    recognizer=f"projects/nineyrold/locations/global/recognizers/_",
+    streaming_config=streaming_config,
+)
 
 def listen(
-    stream_file: str,
-) -> cloud_speech_types.StreamingRecognizeResponse:
+    lang: str,
+    device_index: int,
+) -> str:
     # Instantiates a client
     client = SpeechClient()
 
@@ -41,6 +61,8 @@ def listen(
         device_index=device_index,
     )
 
+    print(mic_manager.chunk_size)
+
     with mic_manager as stream:
         while not stream.closed:
 
@@ -49,19 +71,6 @@ def listen(
 
             audio_requests = (
                 cloud_speech_types.StreamingRecognizeRequest(audio=audio) for audio in audio_generator
-            )
-
-            recognition_config = cloud_speech_types.RecognitionConfig(
-                auto_decoding_config=cloud_speech_types.AutoDetectDecodingConfig(),
-                language_codes=["en-US"],
-                model="long",
-            )
-            streaming_config = cloud_speech_types.StreamingRecognitionConfig(
-                config=recognition_config
-            )
-            config_request = cloud_speech_types.StreamingRecognizeRequest(
-                recognizer=f"projects/nineyrold/locations/global/recognizers/_",
-                streaming_config=streaming_config,
             )
 
             def requests(config: cloud_speech_types.RecognitionConfig, audio: list):
@@ -74,11 +83,12 @@ def listen(
             )
             responses = []
             for response in responses_iterator:
+                print(f"Response: {response}")
                 responses.append(response)
                 for result in response.results:
                     print(f"Transcript: {result.alternatives[0].transcript}")
 
-            return responses
+            return ''.join(responses)
 
 
 if __name__ == "__main__":

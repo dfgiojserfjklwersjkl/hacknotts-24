@@ -1,10 +1,12 @@
+
 import queue
-import time
+
 
 import pyaudio
+import re
 
-from config import Config
-
+import sys
+import time
 
 def get_current_time() -> int:
     """Return Current Time in MS.
@@ -17,6 +19,7 @@ def get_current_time() -> int:
 
 
 class ResumableMicrophoneStream:
+
     """Opens a recording stream as a generator yielding the audio chunks."""
 
     def __init__(
@@ -178,3 +181,4 @@ class ResumableMicrophoneStream:
                     break
 
             yield b"".join(data)
+
