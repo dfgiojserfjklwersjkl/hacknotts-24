@@ -21,6 +21,7 @@ CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 RED = "\033[0;31m"
 GREEN = "\033[0;32m"
 YELLOW = "\033[0;33m"
+WHITE = "\033[0;37m"
 
 
 def listen_print_loop(responses, stream) -> str:
@@ -73,8 +74,8 @@ def listen_print_loop(responses, stream) -> str:
         # Display interim results, but with a carriage return at the end of the
         # line, so subsequent lines will overwrite them.
 
-        print("\033l", end="")
-        print(transcript)
+        os.system('clear')
+        print('\n'.join(sentences))
         if result.is_final:
 
             sentences[-1] = transcript
@@ -89,6 +90,7 @@ def listen_print_loop(responses, stream) -> str:
 
         try:
             inputimeout(prompt='', timeout=0.1)
+            print(WHITE)
             return ''.join(sentences)
 
         except TimeoutOccurred as e:
@@ -106,6 +108,8 @@ def main(language: str, device_index: int) -> str:
         language_code=language,
         max_alternatives=1,
         profanity_filter=False,
+        model='telephony',
+        # use_enhanced=True,
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
@@ -114,20 +118,13 @@ def main(language: str, device_index: int) -> str:
 
     mic_manager = ResumableMicrophoneStream(
         SAMPLE_RATE, CHUNK_SIZE, device_index)
-    print(mic_manager.chunk_size)
-    sys.stdout.write(YELLOW)
-    sys.stdout.write('\nListening, say "Quit" or "Exit" to stop.\n\n')
-    sys.stdout.write("End (ms)       Transcript Results/Status\n")
     sys.stdout.write("=====================================================\n")
+    sys.stdout.write(YELLOW)
 
     transcript_output = ''
 
     with mic_manager as stream:
         while not stream.closed:
-            sys.stdout.write(YELLOW)
-            sys.stdout.write(
-                "\n" + str("NEW REQUEST\n")
-            )
 
             stream.audio_input = []
             audio_generator = stream.generator()
@@ -141,8 +138,6 @@ def main(language: str, device_index: int) -> str:
 
             # Now, put the transcription responses to use.
             transcript_output = listen_print_loop(responses, stream)
-
-            print(transcript_output)
 
             return transcript_output
 

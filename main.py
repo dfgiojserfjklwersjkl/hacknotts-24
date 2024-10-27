@@ -18,7 +18,7 @@ if __name__ == "__main__":
     info = pya.get_host_api_info_by_index(0)
     numdevices = info.get('deviceCount')
     device_index = None
-    print("Available devices:\n")
+
     for i in range(pya.get_device_count()):
         devinfo = pya.get_device_info_by_index(i)
         if devinfo['name'] == 'pulse':
@@ -33,6 +33,6 @@ if __name__ == "__main__":
         question = stt.main(lang, device_index)
 
         answer = interview.ask(question)
-        print(f"{question}\n\nAns:\n {answer}\n======")
+        print(f"Question:\n  {question}\n\nAns:\n {answer}\n======")
 
         input("Press Enter to for the next question...")

@@ -32,10 +32,3 @@ def ask(messages: list, question: str) -> str:
     )
 
     return response.choices[0].message.content or "Sorry, I don't know the answer to that question."
-
-if __name__ == "__main__":
-    from dotenv import load_dotenv
-    import os
-
-    res = ask("software engineer", "introduce yourself")
-    print(res)

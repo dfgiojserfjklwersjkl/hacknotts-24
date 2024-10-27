@@ -6,7 +6,6 @@ class Interview:
     def __init__(self, context: str):
         system_prompt = Config.get("system_prompt").format(context=context)
 
-
         self.context = context
         self.messages = [
             {
@@ -47,8 +46,5 @@ class Interview:
             ]
             }
         )
-
-        print(self.messages)
-
 
         return response
